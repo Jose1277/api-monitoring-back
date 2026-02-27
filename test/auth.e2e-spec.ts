@@ -84,7 +84,7 @@ describe('Auth (e2e)', () => {
           email: 'test@example.com',
           password: 'Test@1234',
         })
-        .expect(200);
+        .expect(201);
 
       expect(response.body).toHaveProperty('access_token');
       expect(response.body).toHaveProperty('user');
