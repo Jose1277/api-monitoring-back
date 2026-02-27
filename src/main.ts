@@ -8,7 +8,7 @@ async function bootstrap() {
   const environment = process.env.NODE_ENV || 'development';
   const isDevelopment = environment === 'development';
 
-  logger.log(`🚀 Starting application in ${environment.toUpperCase()} mode`);
+  logger.log(`Starting application in ${environment.toUpperCase()} mode`);
 
   const app = await NestFactory.create(AppModule, {
     logger: isDevelopment
@@ -26,7 +26,7 @@ async function bootstrap() {
 
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, //
+      whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
     }),
@@ -38,7 +38,7 @@ async function bootstrap() {
   logger.log(`Application listening on port ${port}`);
   logger.log(`Environment: ${environment}`);
   logger.log(`Database: ${isDevelopment ? 'SQLite' : 'PostgreSQL'}`);
-  logger.log(`API: http://localhost:${port}/api`);
+  logger.log(`API: http://localhost:${port}/`);
 
   if (isDevelopment) {
     logger.log(`Prisma Studio: Run 'npx prisma studio' to open`);
