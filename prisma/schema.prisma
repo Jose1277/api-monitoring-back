@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// prisma/schema.prisma
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String     @id @default(uuid())
+  email     String     @unique
+  password  String
+  name      String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  endpoints Endpoint[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model Endpoint {
+  id          String        @id @default(uuid())
+  name        String
+  url         String
+  method      String        @default("GET")
+  headers     Json?
+  body        String?
+  interval    Int           @default(300)
+  timeout     Int           @default(10000)
+  isActive    Boolean       @default(true)
+  description String?
+  tags        String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  checks      HealthCheck[]
+
+  @@index([userId])
+  @@index([isActive])
+  @@index([userId, isActive])
+  @@map("endpoints")
+}
+
+model HealthCheck {
+  id            String   @id @default(uuid())
+  statusCode    Int?
+  responseTime  Int
+  isUp          Boolean
+  errorMessage  String?
+  errorType     String?
+  responseBody  String?
+  checkedAt     DateTime @default(now())
+  checkDuration Int?
+  endpointId    String
+  endpoint      Endpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+
+  @@index([endpointId])
+  @@index([checkedAt])
+  @@index([endpointId, checkedAt])
+  @@index([endpointId, isUp])
+  @@index([endpointId, checkedAt, isUp])
+  @@map("health_checks")
+}
