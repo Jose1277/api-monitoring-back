@@ -7,40 +7,31 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class EndpointsService {
   constructor(private readonly prisma: PrismaService) { }
   create(createEndpointDto: CreateEndpointDto) {
-    const { name, url, method, headers, body, description, userId } = createEndpointDto;
     return this.prisma.endpoint.create({
-      data: {
-        name,
-        url,
-        method,
-        headers,
-        body,
-        description,
-        userId,
-      },
+      data: createEndpointDto,
     });
   }
 
   findAll() {
-    try {
-      const endpoints = this.prisma.endpoint.findMany();
-      return endpoints;
-    }
-    catch (error) {
-      console.error("Error fetching endpoints:", error);
-      throw new Error("Failed to fetch endpoints");
-    }
+    return this.prisma.endpoint.findMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} endpoint`;
+  findOne(id: string) {
+    return this.prisma.endpoint.findUnique({
+      where: { id },
+    });
   }
 
-  update(id: number, updateEndpointDto: UpdateEndpointDto) {
-    return `This action updates a #${id} endpoint`;
+  update(id: string, updateEndpointDto: UpdateEndpointDto) {
+    return this.prisma.endpoint.update({
+      where: { id },
+      data: updateEndpointDto,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} endpoint`;
+  remove(id: string) {
+    return this.prisma.endpoint.delete({
+      where: { id },
+    });
   }
 }

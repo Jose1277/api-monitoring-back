@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsAlphanumeric, IsNumber, IsString, MaxLength, MinLength } from "class-validator";
+import { IsNumber, IsString, Max, MaxLength, Min, MinLength } from "class-validator";
 
 export class CreateEndpointDto {
     @ApiProperty({
@@ -71,8 +71,8 @@ export class CreateEndpointDto {
         required: true,
     })
     @IsNumber({}, { message: "Interval must be a number" })
-    @MinLength(1, { message: "Interval must be at least 1 character long" })
-    @MaxLength(10, { message: "Interval must be at most 10 characters long" })
+    @Min(1000, { message: "Interval must be at least 1000ms (1 second)" })
+    @Max(86400000, { message: "Interval must be at most 86400000ms (24 hours)" })
     interval: number;
 
     @ApiProperty({
@@ -81,8 +81,8 @@ export class CreateEndpointDto {
         required: true,
     })
     @IsNumber({}, { message: "Timeout must be a number" })
-    @MinLength(1, { message: "Timeout must be at least 1 character long" })
-    @MaxLength(10, { message: "Timeout must be at most 10 characters long" })
+    @Min(1000, { message: "Timeout must be at least 1000ms (1 second)" })
+    @Max(60000, { message: "Timeout must be at most 60000ms (60 seconds)" })
     timeout: number;
 
     @ApiProperty({
