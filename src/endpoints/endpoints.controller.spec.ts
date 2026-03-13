@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EndpointsController } from './endpoints.controller';
 import { EndpointsService } from './endpoints.service';
+import { RedisService } from '../redis/redis.service';
 import { CreateEndpointDto } from './dto/create-endpoint.dto';
 import { UpdateEndpointDto } from './dto/update-endpoint.dto';
 
@@ -14,6 +15,14 @@ describe('EndpointsController', () => {
         update: jest.fn(),
         remove: jest.fn(),
     };
+
+    const mockRedisService = {
+        get: jest.fn(),
+        set: jest.fn(),
+        del: jest.fn(),
+    };
+
+    const mockReq = { user: { userId: 'uuid-user-123' } };
 
     const mockEndpoint = {
         id: 'uuid-endpoint-123',
@@ -36,6 +45,7 @@ describe('EndpointsController', () => {
             controllers: [EndpointsController],
             providers: [
                 { provide: EndpointsService, useValue: mockEndpointsService },
+                { provide: RedisService, useValue: mockRedisService },
             ],
         }).compile();
 
@@ -110,7 +120,7 @@ describe('EndpointsController', () => {
 
             mockEndpointsService.findAll.mockResolvedValue(endpoints);
 
-            const result = await controller.findAll();
+            const result = await controller.findAll(mockReq);
 
             expect(result).toEqual(endpoints);
             expect(result).toHaveLength(2);
@@ -120,7 +130,7 @@ describe('EndpointsController', () => {
         it('should return empty array when no endpoints', async () => {
             mockEndpointsService.findAll.mockResolvedValue([]);
 
-            const result = await controller.findAll();
+            const result = await controller.findAll(mockReq);
 
             expect(result).toEqual([]);
             expect(result).toHaveLength(0);
@@ -132,17 +142,17 @@ describe('EndpointsController', () => {
             const id = 'uuid-endpoint-123';
             mockEndpointsService.findOne.mockResolvedValue(mockEndpoint);
 
-            const result = await controller.findOne(id);
+            const result = await controller.findOne(id, mockReq);
 
             expect(result).toEqual(mockEndpoint);
-            expect(mockEndpointsService.findOne).toHaveBeenCalledWith(id);
+            expect(mockEndpointsService.findOne).toHaveBeenCalledWith(id, mockReq.user.userId);
         });
 
         it('should return null if endpoint not found', async () => {
             const id = 'non-existent-id';
             mockEndpointsService.findOne.mockResolvedValue(null);
 
-            const result = await controller.findOne(id);
+            const result = await controller.findOne(id, mockReq);
 
             expect(result).toBeNull();
         });
@@ -156,10 +166,10 @@ describe('EndpointsController', () => {
 
             mockEndpointsService.update.mockResolvedValue(updatedEndpoint);
 
-            const result = await controller.update(id, updateDto);
+            const result = await controller.update(id, updateDto, mockReq);
 
             expect(result).toEqual(updatedEndpoint);
-            expect(mockEndpointsService.update).toHaveBeenCalledWith(id, updateDto);
+            expect(mockEndpointsService.update).toHaveBeenCalledWith(id, updateDto, mockReq.user.userId);
         });
     });
 
@@ -168,10 +178,10 @@ describe('EndpointsController', () => {
             const id = 'uuid-endpoint-123';
             mockEndpointsService.remove.mockResolvedValue(mockEndpoint);
 
-            const result = await controller.remove(id);
+            const result = await controller.remove(id, mockReq);
 
             expect(result).toEqual(mockEndpoint);
-            expect(mockEndpointsService.remove).toHaveBeenCalledWith(id);
+            expect(mockEndpointsService.remove).toHaveBeenCalledWith(id, mockReq.user.userId);
         });
     });
 });

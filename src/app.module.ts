@@ -4,6 +4,9 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { EndpointsModule } from './endpoints/endpoints.module';
+import { HealthChecksModule } from './health-checks/health-checks.module';
+import { MonitoringModule } from './monitoring/monitoring.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -14,8 +17,11 @@ import { EndpointsModule } from './endpoints/endpoints.module';
     }),
     ScheduleModule.forRoot(),
     PrismaModule,
+    RedisModule,
     AuthModule,
     EndpointsModule,
+    HealthChecksModule,
+    MonitoringModule,
   ],
 })
 export class AppModule {}

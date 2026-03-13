@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EndpointsService } from './endpoints.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotFoundException } from '@nestjs/common';
 import { CreateEndpointDto } from './dto/create-endpoint.dto';
 import { UpdateEndpointDto } from './dto/update-endpoint.dto';
 
@@ -11,11 +12,13 @@ describe('EndpointsService', () => {
         endpoint: {
             create: jest.fn(),
             findMany: jest.fn(),
-            findUnique: jest.fn(),
+            findFirst: jest.fn(),
             update: jest.fn(),
             delete: jest.fn(),
         },
     };
+
+    const USER_ID = 'uuid-user-123';
 
     const mockEndpoint = {
         id: 'uuid-endpoint-123',
@@ -28,7 +31,7 @@ describe('EndpointsService', () => {
         timeout: 10000,
         isActive: true,
         description: 'Test endpoint description',
-        userId: 'uuid-user-123',
+        userId: USER_ID,
         createdAt: new Date(),
         updatedAt: new Date(),
     };
@@ -60,7 +63,7 @@ describe('EndpointsService', () => {
                 method: 'GET',
                 interval: 5000,
                 timeout: 10000,
-                userId: 'uuid-user-123',
+                userId: USER_ID,
             };
 
             mockPrismaService.endpoint.create.mockResolvedValue(mockEndpoint);
@@ -68,9 +71,7 @@ describe('EndpointsService', () => {
             const result = await service.create(createDto);
 
             expect(result).toEqual(mockEndpoint);
-            expect(mockPrismaService.endpoint.create).toHaveBeenCalledWith({
-                data: createDto,
-            });
+            expect(mockPrismaService.endpoint.create).toHaveBeenCalledWith({ data: createDto });
             expect(mockPrismaService.endpoint.create).toHaveBeenCalledTimes(1);
         });
 
@@ -84,7 +85,7 @@ describe('EndpointsService', () => {
                 description: 'Test description',
                 interval: 5000,
                 timeout: 10000,
-                userId: 'uuid-user-123',
+                userId: USER_ID,
             };
 
             const endpointWithOptionals = {
@@ -122,7 +123,7 @@ describe('EndpointsService', () => {
     });
 
     describe('findAll', () => {
-        it('should return all endpoints', async () => {
+        it('should return all endpoints for a user', async () => {
             const endpoints = [
                 mockEndpoint,
                 { ...mockEndpoint, id: 'uuid-endpoint-456', name: 'Second Endpoint' },
@@ -130,17 +131,16 @@ describe('EndpointsService', () => {
 
             mockPrismaService.endpoint.findMany.mockResolvedValue(endpoints);
 
-            const result = await service.findAll();
+            const result = await service.findAll(USER_ID);
 
-            expect(result).toEqual(endpoints);
             expect(result).toHaveLength(2);
-            expect(mockPrismaService.endpoint.findMany).toHaveBeenCalledTimes(1);
+            expect(mockPrismaService.endpoint.findMany).toHaveBeenCalledWith({ where: { userId: USER_ID } });
         });
 
         it('should return empty array when no endpoints exist', async () => {
             mockPrismaService.endpoint.findMany.mockResolvedValue([]);
 
-            const result = await service.findAll();
+            const result = await service.findAll(USER_ID);
 
             expect(result).toEqual([]);
             expect(result).toHaveLength(0);
@@ -150,23 +150,21 @@ describe('EndpointsService', () => {
     describe('findOne', () => {
         it('should return an endpoint by id', async () => {
             const id = 'uuid-endpoint-123';
-            mockPrismaService.endpoint.findUnique.mockResolvedValue(mockEndpoint);
+            mockPrismaService.endpoint.findFirst.mockResolvedValue(mockEndpoint);
 
-            const result = await service.findOne(id);
+            const result = await service.findOne(id, USER_ID);
 
-            expect(result).toEqual(mockEndpoint);
-            expect(mockPrismaService.endpoint.findUnique).toHaveBeenCalledWith({
-                where: { id },
+            expect(result).toEqual(expect.objectContaining({ id }));
+            expect(mockPrismaService.endpoint.findFirst).toHaveBeenCalledWith({
+                where: { id, userId: USER_ID },
             });
         });
 
-        it('should return null if endpoint not found', async () => {
+        it('should throw NotFoundException if endpoint not found', async () => {
             const id = 'non-existent-id';
-            mockPrismaService.endpoint.findUnique.mockResolvedValue(null);
+            mockPrismaService.endpoint.findFirst.mockResolvedValue(null);
 
-            const result = await service.findOne(id);
-
-            expect(result).toBeNull();
+            await expect(service.findOne(id, USER_ID)).rejects.toThrow(NotFoundException);
         });
     });
 
@@ -176,9 +174,10 @@ describe('EndpointsService', () => {
             const updateDto: UpdateEndpointDto = { name: 'Updated Endpoint' };
             const updatedEndpoint = { ...mockEndpoint, name: 'Updated Endpoint' };
 
+            mockPrismaService.endpoint.findFirst.mockResolvedValue(mockEndpoint);
             mockPrismaService.endpoint.update.mockResolvedValue(updatedEndpoint);
 
-            const result = await service.update(id, updateDto);
+            const result = await service.update(id, updateDto, USER_ID);
 
             expect(result).toEqual(updatedEndpoint);
             expect(mockPrismaService.endpoint.update).toHaveBeenCalledWith({
@@ -187,37 +186,34 @@ describe('EndpointsService', () => {
             });
         });
 
-        it('should propagate error if endpoint not found', async () => {
+        it('should throw NotFoundException if endpoint not found', async () => {
             const id = 'non-existent-id';
             const updateDto: UpdateEndpointDto = { name: 'Updated Endpoint' };
-            const prismaError = new Error('Record not found');
 
-            mockPrismaService.endpoint.update.mockRejectedValue(prismaError);
+            mockPrismaService.endpoint.findFirst.mockResolvedValue(null);
 
-            await expect(service.update(id, updateDto)).rejects.toThrow(prismaError);
+            await expect(service.update(id, updateDto, USER_ID)).rejects.toThrow(NotFoundException);
         });
     });
 
     describe('remove', () => {
         it('should delete an endpoint', async () => {
             const id = 'uuid-endpoint-123';
+            mockPrismaService.endpoint.findFirst.mockResolvedValue(mockEndpoint);
             mockPrismaService.endpoint.delete.mockResolvedValue(mockEndpoint);
 
-            const result = await service.remove(id);
+            const result = await service.remove(id, USER_ID);
 
             expect(result).toEqual(mockEndpoint);
-            expect(mockPrismaService.endpoint.delete).toHaveBeenCalledWith({
-                where: { id },
-            });
+            expect(mockPrismaService.endpoint.delete).toHaveBeenCalledWith({ where: { id } });
         });
 
-        it('should propagate error if endpoint not found', async () => {
+        it('should throw NotFoundException if endpoint not found', async () => {
             const id = 'non-existent-id';
-            const prismaError = new Error('Record not found');
 
-            mockPrismaService.endpoint.delete.mockRejectedValue(prismaError);
+            mockPrismaService.endpoint.findFirst.mockResolvedValue(null);
 
-            await expect(service.remove(id)).rejects.toThrow(prismaError);
+            await expect(service.remove(id, USER_ID)).rejects.toThrow(NotFoundException);
         });
     });
 });
