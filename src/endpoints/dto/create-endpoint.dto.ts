@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNumber, IsString, Max, MaxLength, Min, MinLength } from "class-validator";
+import { IsJSON, IsNumber, IsOptional, IsString, Max, MaxLength, Min, MinLength } from "class-validator";
 
 export class CreateEndpointDto {
     @ApiProperty({
@@ -39,7 +39,9 @@ export class CreateEndpointDto {
         },
         required: false,
     })
+    @IsOptional()
     @IsString({ message: "Headers must be a text string" })
+    @IsJSON({ message: "Headers must be a valid JSON string" })
     @MaxLength(500, { message: "Headers must be at most 500 characters long" })
     headers?: string;
 
@@ -51,6 +53,7 @@ export class CreateEndpointDto {
         },
         required: false,
     })
+    @IsOptional()
     @IsString({ message: "Body must be a text string" })
     @MaxLength(2000, { message: "Body must be at most 2000 characters long" })
     body?: string;
@@ -61,6 +64,7 @@ export class CreateEndpointDto {
         maxLength: 200,
         required: false,
     })
+    @IsOptional()
     @IsString({ message: "Description must be a text string" })
     @MaxLength(200, { message: "Description must be at most 200 characters long" })
     description?: string;

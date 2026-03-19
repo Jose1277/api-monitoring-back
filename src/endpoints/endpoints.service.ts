@@ -8,8 +8,12 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class EndpointsService {
   constructor(private readonly prisma: PrismaService) { }
   async create(createEndpointDto: CreateEndpointDto) {
+    const { headers, ...rest } = createEndpointDto;
     return this.prisma.endpoint.create({
-      data: createEndpointDto,
+      data: {
+        ...rest,
+        headers: headers ? JSON.parse(headers) : undefined,
+      },
     });
   }
 
@@ -58,9 +62,13 @@ export class EndpointsService {
       throw new NotFoundException('Endpoint not found');
     }
 
+    const { headers, ...rest } = updateEndpointDto;
     return this.prisma.endpoint.update({
       where: { id },
-      data: updateEndpointDto,
+      data: {
+        ...rest,
+        ...(headers !== undefined && { headers: headers ? JSON.parse(headers) : null }),
+      },
     });
   }
 

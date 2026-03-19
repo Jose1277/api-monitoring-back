@@ -3,7 +3,9 @@ import { AuthService } from './auth.service';
 import { LoginDTO, RegisterDTO } from './auth.dto';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { JwtAuthGuardUser } from './jwt.guards';
+import { Throttle } from '@nestjs/throttler';
 
+@Throttle({ default: { ttl: 60_000, limit: 10 } })
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
@@ -20,7 +22,6 @@ export class AuthController {
   @Post('login')
   @ApiOperation({ summary: 'Login a user' })
   @ApiResponse({ status: 200, description: 'User logged in successfully' })
-  @ApiResponse({ status: 400, description: 'Bad Request' })
   @ApiResponse({ status: 401, description: 'Unauthorized - Invalid credentials' })
   async login(@Body() loginPayload: LoginDTO) {
     return this.authService.login(loginPayload);

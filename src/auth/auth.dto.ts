@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEmail, IsOptional, IsString, MaxLength, Min, MinLength, registerDecorator, ValidationArguments, ValidationOptions } from "class-validator";
+import { IsEmail, IsOptional, IsString, MaxLength, registerDecorator, ValidationArguments, ValidationOptions } from "class-validator";
 
 export function IsStrongPassword(validationOptions?: ValidationOptions) {
     return function (object: Object, propertyName: string) {
@@ -75,8 +75,6 @@ export class LoginDTO {
         required: true,
     })
     @IsString({ message: "Password must be a text string" })
-    @MinLength(8, { message: "Password must be at least 8 characters long" })
-    @MaxLength(20, { message: "Password must be at most 20 characters long" })
     password: string;
 }
 
