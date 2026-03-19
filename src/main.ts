@@ -19,8 +19,8 @@ async function bootstrap() {
   // CORS
   app.enableCors({
     origin: isDevelopment
-      ? '*' // Dev
-      : process.env.FRONTEND_URL || 'https://frontend-url.com/', // Prod
+      ? '*' 
+      : process.env.FRONTEND_URL || '*', 
     credentials: true,
   });
 
@@ -34,14 +34,15 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3000;
 
-  await app.listen(port);
-  logger.log(`Application listening on port ${port}`);
-  logger.log(`Environment: ${environment}`);
-  logger.log(`Database: ${isDevelopment ? 'SQLite' : 'PostgreSQL'}`);
-  logger.log(`API: http://localhost:${port}/`);
+  await app.listen(port, '0.0.0.0');
+
+  logger.log(`✅ Application listening on port ${port}`);
+  logger.log(`📊 Environment: ${environment}`);
+  logger.log(`🗄️  Database: ${isDevelopment ? 'SQLite' : 'PostgreSQL'}`);
 
   if (isDevelopment) {
-    logger.log(`Prisma Studio: Run 'npx prisma studio' to open`);
+    logger.log(`🌐 API: http://localhost:${port}/`);
+    logger.log(`📝 Prisma Studio: Run 'npx prisma studio' to open`);
   }
 }
 
