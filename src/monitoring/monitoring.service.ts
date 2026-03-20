@@ -1,10 +1,11 @@
+// src/monitoring/monitoring.service.ts
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import axios from 'axios';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { HealthChecksService } from 'src/health-checks/health-checks.service';
 import { MonitoringGateway } from './monitoring.gateway';
-import { RedisService } from 'src/redis/redis.service';
+// import { RedisService } from 'src/redis/redis.service'; ← DELETAR
 
 const STATUS_TTL_SECONDS = 300; // 5 minutes
 
@@ -16,8 +17,8 @@ export class MonitoringService {
     private readonly prisma: PrismaService,
     private readonly healthChecksService: HealthChecksService,
     private readonly gateway: MonitoringGateway,
-    private readonly redis: RedisService,
-  ) {}
+    // private readonly redis: RedisService, ← DELETAR
+  ) { }
 
   @Cron('*/30 * * * * *')
   async performChecks() {
@@ -63,7 +64,8 @@ export class MonitoringService {
         checkDuration: responseTime,
       });
 
-      await this.cacheStatus(endpoint.id, { isUp, responseTime, lastCheck: checkedAt });
+      // await this.cacheStatus(endpoint.id, { isUp, responseTime, lastCheck: checkedAt }); ← COMENTAR OU DELETAR
+
       this.gateway.emitCheckUpdate(endpoint.userId, {
         endpointId: endpoint.id,
         isUp,
@@ -89,7 +91,8 @@ export class MonitoringService {
         checkDuration: responseTime,
       });
 
-      await this.cacheStatus(endpoint.id, { isUp: false, responseTime, lastCheck: checkedAt });
+      // await this.cacheStatus(endpoint.id, { isUp: false, responseTime, lastCheck: checkedAt }); ← COMENTAR OU DELETAR
+
       this.gateway.emitCheckUpdate(endpoint.userId, {
         endpointId: endpoint.id,
         isUp: false,
@@ -100,21 +103,21 @@ export class MonitoringService {
       this.logger.warn(`[${endpoint.id}] ${endpoint.url} → ERROR: ${errorMessage}`);
     }
   }
-
-  private async cacheStatus(
-    endpointId: string,
-    status: { isUp: boolean; responseTime: number; lastCheck: Date },
-  ) {
-    try {
-      await this.redis.set(
-        `endpoint:${endpointId}:status`,
-        JSON.stringify(status),
-        STATUS_TTL_SECONDS,
-      );
-    } catch (err) {
-      this.logger.error(`Failed to cache status for endpoint ${endpointId}`, err);
-    }
-  }
+  // redis caching for future 
+  // private async cacheStatus(
+  //   endpointId: string,
+  //   status: { isUp: boolean; responseTime: number; lastCheck: Date },
+  // ) {
+  //   try {
+  //     await this.redis.set(
+  //       `endpoint:${endpointId}:status`,
+  //       JSON.stringify(status),
+  //       STATUS_TTL_SECONDS,
+  //     );
+  //   } catch (err) {
+  //     this.logger.error(`Failed to cache status for endpoint ${endpointId}`, err);
+  //   }
+  // }
 
   private getErrorType(err: unknown): string {
     if (axios.isAxiosError(err)) {

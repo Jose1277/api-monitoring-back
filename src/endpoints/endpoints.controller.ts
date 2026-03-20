@@ -4,14 +4,14 @@ import { CreateEndpointDto } from './dto/create-endpoint.dto';
 import { UpdateEndpointDto } from './dto/update-endpoint.dto';
 import { JwtAuthGuardUser } from 'src/auth/jwt.guards';
 import { ApiResponse } from '@nestjs/swagger';
-import { RedisService } from 'src/redis/redis.service';
+//import { RedisService } from 'src/redis/redis.service';
 
 @Controller('endpoints')
 export class EndpointsController {
   constructor(
     private readonly endpointsService: EndpointsService,
-    private readonly redis: RedisService,
-  ) {}
+    //private readonly redis: RedisService,
+  ) { }
 
   @Post()
   @UseGuards(JwtAuthGuardUser)
@@ -49,22 +49,22 @@ export class EndpointsController {
     return this.endpointsService.update(id, updateEndpointDto, req.user.userId);
   }
 
-  @Get(':id/status')
-  @UseGuards(JwtAuthGuardUser)
-  @ApiResponse({ status: 200, description: 'Cached status retrieved from Redis' })
-  @ApiResponse({ status: 401, description: 'Unauthorized - User not authenticated' })
-  @ApiResponse({ status: 404, description: 'Endpoint not found or no status cached yet' })
-  async getStatus(@Param('id') id: string, @Request() req) {
-    // Verify ownership before touching Redis — never trust the cache alone
-    await this.endpointsService.findOne(id, req.user.userId);
+  // @Get(':id/status')
+  // @UseGuards(JwtAuthGuardUser)
+  // @ApiResponse({ status: 200, description: 'Cached status retrieved from Redis' })
+  // @ApiResponse({ status: 401, description: 'Unauthorized - User not authenticated' })
+  // @ApiResponse({ status: 404, description: 'Endpoint not found or no status cached yet' })
+  // // async getStatus(@Param('id') id: string, @Request() req) {
+  // //   // Verify ownership before touching Redis — never trust the cache alone
+  // //   await this.endpointsService.findOne(id, req.user.userId);
 
-    const cached = await this.redis.get(`endpoint:${id}:status`);
-    if (!cached) {
-      throw new NotFoundException('No status cached yet — endpoint may not have been checked');
-    }
+  // //   const cached = await this.redis.get(`endpoint:${id}:status`);
+  // //   if (!cached) {
+  // //     throw new NotFoundException('No status cached yet — endpoint may not have been checked');
+  // //   }
 
-    return JSON.parse(cached) as { isUp: boolean; responseTime: number; lastCheck: string };
-  }
+  // //   return JSON.parse(cached) as { isUp: boolean; responseTime: number; lastCheck: string };
+  // // }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuardUser)
