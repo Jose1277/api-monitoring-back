@@ -26,11 +26,11 @@ import { RedisModule } from './redis/redis.module';
     ]),
     ScheduleModule.forRoot(),
     PrismaModule,
-    RedisModule,
     AuthModule,
     EndpointsModule,
     HealthChecksModule,
     MonitoringModule,
+    ...(process.env.REDIS_URL ? [RedisModule] : []),
   ],
   providers: [
     {
@@ -39,4 +39,4 @@ import { RedisModule } from './redis/redis.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }
