@@ -5,7 +5,7 @@ import axios from 'axios';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { HealthChecksService } from 'src/health-checks/health-checks.service';
 import { MonitoringGateway } from './monitoring.gateway';
-// import { RedisService } from 'src/redis/redis.service'; ← DELETAR
+// import { RedisService } from 'src/redis/redis.service';
 
 const STATUS_TTL_SECONDS = 300; // 5 minutes
 
@@ -17,7 +17,7 @@ export class MonitoringService {
     private readonly prisma: PrismaService,
     private readonly healthChecksService: HealthChecksService,
     private readonly gateway: MonitoringGateway,
-    // private readonly redis: RedisService, ← DELETAR
+
   ) { }
 
   @Cron('*/30 * * * * *')
@@ -64,7 +64,7 @@ export class MonitoringService {
         checkDuration: responseTime,
       });
 
-      // await this.cacheStatus(endpoint.id, { isUp, responseTime, lastCheck: checkedAt }); ← COMENTAR OU DELETAR
+      // await this.cacheStatus(endpoint.id, { isUp, responseTime, lastCheck: checkedAt }); 
 
       this.gateway.emitCheckUpdate(endpoint.userId, {
         endpointId: endpoint.id,
@@ -91,7 +91,7 @@ export class MonitoringService {
         checkDuration: responseTime,
       });
 
-      // await this.cacheStatus(endpoint.id, { isUp: false, responseTime, lastCheck: checkedAt }); ← COMENTAR OU DELETAR
+      // await this.cacheStatus(endpoint.id, { isUp: false, responseTime, lastCheck: checkedAt }); 
 
       this.gateway.emitCheckUpdate(endpoint.userId, {
         endpointId: endpoint.id,
